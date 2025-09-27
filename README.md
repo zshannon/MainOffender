@@ -17,6 +17,7 @@ Features:
 - `addMainActorObserver(forName:object:queue:using:)` for `NotificationCenter`
 - `ThreadExecutor` that can be used to back an actor with a dedicated thread + runloop
 - `RunLoop.turn` to better control the runloop in an async context
+- `MainActor.relaxedAssumeIsolated` for a safe and more flexible alternative to assumeIsolated
 
 ## Usage
 
