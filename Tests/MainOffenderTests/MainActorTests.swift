@@ -1,32 +1,22 @@
-import XCTest
+import Testing
 import MainOffender
 
-@available(*, deprecated, message: "Here just to validate the legacy API")
-final class MainActorTests: XCTestCase {
-	@MainActor
-	func testRunOnMainUnsafely() throws {
-		let value = MainActor.runUnsafely {
-			// this will crash if not on the main thread
-			return 42
-		}
-
-		XCTAssertEqual(value, 42)
+struct MainActorTests {
+	class NonSendable {
 	}
 
-	func testRunOnMainUnsafelyFromBackground() throws {
-		let exp = expectation(description: "value")
+	nonisolated func removeIsolation(_ body: @escaping @Sendable () -> Void) {
+		body()
+	}
 
-		DispatchQueue.global().async {
-			DispatchQueue.main.async {
-				_ = MainActor.runUnsafely {
-					// this will crash if not on the main thread
-					return 42
-				}
-
-				exp.fulfill()
+	@Test @MainActor
+	func relaxedAssumeIsolatedWithOptional() async throws {
+		removeIsolation {
+			let value: NonSendable? = MainActor.relaxedAssumeIsolated {
+				NonSendable()
 			}
-		}
 
-		wait(for: [exp])
+			#expect(value != nil)
+		}
 	}
 }
