@@ -15,6 +15,8 @@ Features:
 - `DispatchQueue.mainActor` for a `DispatchQueue` proxy that is `@MainActor`-compatible
 - `OperationQueue.mainActor` for an `OperationQueue` proxy that is `@MainActor`-compatible
 - `addMainActorObserver(forName:object:queue:using:)` for `NotificationCenter`
+- `UndoManager.registerMainActorUndo(interval:repeats:block:)`
+- `Timer.scheduledMainActorTimer(interval:)
 - `ThreadExecutor` that can be used to back an actor with a dedicated thread + runloop
 - `RunLoop.turn` to better control the runloop in an async context
 
