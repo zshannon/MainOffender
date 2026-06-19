@@ -4,20 +4,20 @@ import Darwin
 import Glibc
 #endif
 import Foundation
+import Synchronization
 
 final class ThreadRunLoop: Sendable {
 	private struct RunLoopContext: @unchecked Sendable {
 		let pthread: pthread_t
 		let runLoop: CFRunLoop
 		let source: CFRunLoopSource
-		let thread: Thread
 	}
 
 	private let context: RunLoopContext
 	private let semaphore: DispatchSemaphore
 
 	init(name: String? = nil) {
-		nonisolated(unsafe) var context: RunLoopContext? = nil
+		let context = Mutex<RunLoopContext?>(nil)
 		let semaphore = DispatchSemaphore(value: 0)
 
 		Thread.detachNewThread {
@@ -35,7 +35,9 @@ final class ThreadRunLoop: Sendable {
 
 			CFRunLoopAddSource(loop, source, CFRunLoopMode.defaultMode)
 
-			context = RunLoopContext(pthread: pthread_self(), runLoop: loop, source: source, thread: thread)
+			context.withLock {
+				$0 = RunLoopContext(pthread: pthread_self(), runLoop: loop, source: source)
+			}
 			semaphore.signal()
 
 			CFRunLoopRun()
@@ -45,7 +47,7 @@ final class ThreadRunLoop: Sendable {
 		semaphore.signal() // increment it again for future work
 
 		self.semaphore = semaphore
-		self.context = context!
+		self.context = context.withLock { $0! }
 	}
 
 	func checkIsolated() {
