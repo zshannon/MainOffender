@@ -5,11 +5,12 @@ import PackageDescription
 let package = Package(
 	name: "MainOffender",
 	platforms: [
-		.macOS(.v10_15),
-		.macCatalyst(.v13),
-		.iOS(.v13),
-		.tvOS(.v13),
-		.watchOS(.v6),
+		.macOS(.v15),
+		.macCatalyst(.v18),
+		.iOS(.v18),
+		.tvOS(.v18),
+		.watchOS(.v11),
+		.visionOS(.v2),
 	],
 	products: [
 		.library(name: "MainOffender", targets: ["MainOffender"]),
