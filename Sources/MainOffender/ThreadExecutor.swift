@@ -1,7 +1,13 @@
+#if canImport(Darwin)
+import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#endif
 import Foundation
 
 final class ThreadRunLoop: Sendable {
 	private struct RunLoopContext: @unchecked Sendable {
+		let pthread: pthread_t
 		let runLoop: CFRunLoop
 		let source: CFRunLoopSource
 		let thread: Thread
@@ -29,7 +35,7 @@ final class ThreadRunLoop: Sendable {
 
 			CFRunLoopAddSource(loop, source, CFRunLoopMode.defaultMode)
 
-			context = RunLoopContext(runLoop: loop, source: source, thread: thread)
+			context = RunLoopContext(pthread: pthread_self(), runLoop: loop, source: source, thread: thread)
 			semaphore.signal()
 
 			CFRunLoopRun()
@@ -40,6 +46,12 @@ final class ThreadRunLoop: Sendable {
 
 		self.semaphore = semaphore
 		self.context = context!
+	}
+
+	func checkIsolated() {
+		guard pthread_equal(pthread_self(), context.pthread) != 0 else {
+			fatalError("Incorrect ThreadExecutor isolation")
+		}
 	}
 
 	static func createEmptySource() -> CFRunLoopSource {
@@ -100,6 +112,10 @@ public final class ThreadExecutor: SerialExecutor {
 		thread.perform {
 			job.runSynchronously(on: unownedExecutor)
 		}
+	}
+
+	public func checkIsolated() {
+		thread.checkIsolated()
 	}
 
 //	@available(macOS 14.0, *)
